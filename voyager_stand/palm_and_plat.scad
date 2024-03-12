@@ -19,12 +19,11 @@ difference()
 
 {
     CORNER_DIAMETER = 6;
-    MAGNET_DIAMETER = 16.2;
+    MAGNET_DIAMETER = 16.3;
     MAGNET_DEPTH = 12.5;
     PADDING = 3.5;
 
-    CABLE_DIAMETER = 4;
-    CABLE_CLAMP_WIDTH = CABLE_DIAMETER - .5;
+    CABLE_DIAMETER = 4.3;
 
     PEG_TL = [ 10.4, 94 ];
     PEG_BL = [ 10.4, 59 ];
@@ -89,20 +88,49 @@ difference()
 
     module cable_cutouts()
     {
+        $fn = 18;
         DEPTH = MAGNET_DIAMETER * 2;
-        hull()
+        module cable()
         {
-            translate([ CABLE_TL[0], CABLE_TL[1] + DEPTH / 2, -1 ]) rotate([ 90, 0, 0 ])
-                cylinder(d = CABLE_DIAMETER, h = DEPTH);
-            translate([ CABLE_TL[0], CABLE_TL[1] + DEPTH / 2, CABLE_DIAMETER / 2 - 1 ]) rotate([ 90, 0, 0 ])
-                cylinder(d = CABLE_DIAMETER, h = DEPTH);
+            hull()
+            {
+                translate([ CABLE_TL[0], CABLE_TL[1] + DEPTH / 2, -1 ]) rotate([ 90, 0, 0 ])
+                    cylinder(d = CABLE_DIAMETER, h = DEPTH);
+                translate([ CABLE_TL[0], CABLE_TL[1] + DEPTH / 2, CABLE_DIAMETER / 2 - 1 ]) rotate([ 90, 0, 0 ])
+                    cylinder(d = CABLE_DIAMETER, h = DEPTH);
+            }
+            hull()
+            {
+                translate([ CABLE_TR[0], CABLE_TR[1] + DEPTH / 2, -1 ]) rotate([ 90, 0, 0 ])
+                    cylinder(d = CABLE_DIAMETER, h = DEPTH);
+                translate([ CABLE_TR[0], CABLE_TR[1] + DEPTH / 2, CABLE_DIAMETER / 2 - 1 ]) rotate([ 90, 0, 0 ])
+                    cylinder(d = CABLE_DIAMETER, h = DEPTH);
+            }
         }
-        hull()
+
+        module clamps(x, y)
         {
-            translate([ CABLE_TR[0], CABLE_TR[1] + DEPTH / 2, -1 ]) rotate([ 90, 0, 0 ])
-                cylinder(d = CABLE_DIAMETER, h = DEPTH);
-            translate([ CABLE_TR[0], CABLE_TR[1] + DEPTH / 2, CABLE_DIAMETER / 2 - 1 ]) rotate([ 90, 0, 0 ])
-                cylinder(d = CABLE_DIAMETER, h = DEPTH);
+            translate([ x - CABLE_DIAMETER / 2, y, .05 ]) minkowski()
+            {
+                cube([ .20, 2, .3 ]);
+                sphere(d = .1);
+            }
+            translate([ x - CABLE_DIAMETER / 2, y + CABLE_DIAMETER * 2, .05 ]) minkowski()
+            {
+                cube([ .20, 2, .3 ]);
+                sphere(d = .1);
+            }
+            translate([ x + CABLE_DIAMETER / 2 - .2, y + CABLE_DIAMETER, .05 ]) minkowski()
+            {
+                cube([ .20, 2, .3 ]);
+                sphere(d = .1);
+            }
+        }
+        difference()
+        {
+            cable();
+            clamps(CABLE_TL[0], CABLE_TL[1]);
+            clamps(CABLE_TR[0], CABLE_TR[1]);
         }
     }
 
@@ -156,9 +184,24 @@ difference()
                 translate([ 0, PALM_BL[1] - PALM_TL[1], 0 ]) extrude_projection() hull() tilt()
                     rounded_cylinder([ PALM_TL[0], PALM_TL[1], -1 ], CORNER_DIAMETER, PADDING);
                 translate([ PALM_BR[0], PALM_BR[1] - PALM_TL[1], 0 ]) extrude_projection() hull() tilt()
-                    rounded_cylinder([ PALM_TL[0], PALM_TL[1], 2 ], CORNER_DIAMETER);
+                    rounded_cylinder([ PALM_TL[0], PALM_TL[1], -1 ], CORNER_DIAMETER, PADDING);
             }
         }
+
+        module rounded_tip()
+        {
+            PALM_OFFSET = (PALM_TR[0] - PALM_TL[0]) / 2 - PALM_TL[0] + tan(lateral_tilt) * lateral_tilt;
+            PALM_DIAMETER = PALM_BR[0] - PALM_BL[0];
+
+            hull()
+            {
+                translate([ PALM_OFFSET, PALM_BL[1] + PALM_DIAMETER / 2, sin(lateral_tilt) * lateral_tilt ]) cylinder(
+                    r1 = PALM_DIAMETER / 2 + PADDING, r2 = PALM_DIAMETER / 2 + PADDING - 1.5, h = 1, $fn = 360);
+                translate([ PALM_OFFSET, PALM_BL[1] + PALM_DIAMETER / 2, 0 ])
+                    cylinder(r = PALM_DIAMETER / 2 + PADDING, h = 1, $fn = 360);
+            }
+        }
+
         color("magenta") union()
         {
             hull()
@@ -166,15 +209,21 @@ difference()
                 extrude_projection() hull() tilt()
                 {
                     rounded_cylinder([ PALM_TL[0], PALM_TL[1], -1 ], CORNER_DIAMETER, PADDING);
-                    rounded_cylinder([ PALM_TR[0], PALM_TR[1], -1 ], CORNER_DIAMETER, PADDING);
+                    rounded_cylinder([ PALM_TR[0] + (CORNER_DIAMETER) / 2 + PADDING, PALM_TR[1], -1 ], CORNER_DIAMETER,
+                                     PADDING);
                 }
-                tip();
+                rounded_tip();
             }
-            hull()
+            difference()
             {
-                extrude_projection() hull() tilt()
-                    rounded_cylinder([ MAG_BR[0], MAG_BR[1], -1 ], MAGNET_DIAMETER, PADDING);
-                tip();
+                hull()
+                {
+                    extrude_projection() hull() tilt()
+                        rounded_cylinder([ MAG_BR[0], MAG_BR[1], -1 ], MAGNET_DIAMETER, PADDING);
+                    rounded_tip();
+                }
+                extrude_projection() hull() tilt() rounded_cylinder(
+                    [ PEG_BR[0] - CORNER_DIAMETER / 2 - PADDING / 2 + 2, MAG_BR[1], -1 ], MAGNET_DIAMETER, PADDING);
             }
         }
     }
