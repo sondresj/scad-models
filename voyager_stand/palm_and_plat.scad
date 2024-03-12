@@ -90,48 +90,36 @@ difference()
     {
         $fn = 18;
         DEPTH = MAGNET_DIAMETER * 2;
-        module cable()
+        module cable(xy)
         {
-            hull()
+            difference()
             {
-                translate([ CABLE_TL[0], CABLE_TL[1] + DEPTH / 2, -1 ]) rotate([ 90, 0, 0 ])
-                    cylinder(d = CABLE_DIAMETER, h = DEPTH);
-                translate([ CABLE_TL[0], CABLE_TL[1] + DEPTH / 2, CABLE_DIAMETER / 2 - 1 ]) rotate([ 90, 0, 0 ])
-                    cylinder(d = CABLE_DIAMETER, h = DEPTH);
-            }
-            hull()
-            {
-                translate([ CABLE_TR[0], CABLE_TR[1] + DEPTH / 2, -1 ]) rotate([ 90, 0, 0 ])
-                    cylinder(d = CABLE_DIAMETER, h = DEPTH);
-                translate([ CABLE_TR[0], CABLE_TR[1] + DEPTH / 2, CABLE_DIAMETER / 2 - 1 ]) rotate([ 90, 0, 0 ])
-                    cylinder(d = CABLE_DIAMETER, h = DEPTH);
+                hull()
+                {
+                    translate([ xy[0], xy[1] + DEPTH / 2, -1 ]) rotate([ 90, 0, 0 ])
+                        cylinder(d = CABLE_DIAMETER, h = DEPTH);
+                    translate([ xy[0], xy[1] + DEPTH / 2, CABLE_DIAMETER / 2 - 1 ]) rotate([ 90, 0, 0 ])
+                        cylinder(d = CABLE_DIAMETER, h = DEPTH);
+                }
+                translate([ xy[0] - CABLE_DIAMETER / 2, xy[1], .05 ]) minkowski()
+                {
+                    cube([ .20, 2, .3 ]);
+                    sphere(d = .1);
+                }
+                translate([ xy[0] - CABLE_DIAMETER / 2, xy[1] + CABLE_DIAMETER * 2, .05 ]) minkowski()
+                {
+                    cube([ .20, 2, .3 ]);
+                    sphere(d = .1);
+                }
+                translate([ xy[0] + CABLE_DIAMETER / 2 - .2, xy[1] + CABLE_DIAMETER, .05 ]) minkowski()
+                {
+                    cube([ .20, 2, .3 ]);
+                    sphere(d = .1);
+                }
             }
         }
-
-        module clamps(x, y)
-        {
-            translate([ x - CABLE_DIAMETER / 2, y, .05 ]) minkowski()
-            {
-                cube([ .20, 2, .3 ]);
-                sphere(d = .1);
-            }
-            translate([ x - CABLE_DIAMETER / 2, y + CABLE_DIAMETER * 2, .05 ]) minkowski()
-            {
-                cube([ .20, 2, .3 ]);
-                sphere(d = .1);
-            }
-            translate([ x + CABLE_DIAMETER / 2 - .2, y + CABLE_DIAMETER, .05 ]) minkowski()
-            {
-                cube([ .20, 2, .3 ]);
-                sphere(d = .1);
-            }
-        }
-        difference()
-        {
-            cable();
-            clamps(CABLE_TL[0], CABLE_TL[1]);
-            clamps(CABLE_TR[0], CABLE_TR[1]);
-        }
+        cable(CABLE_TL);
+        cable(CABLE_TR);
     }
 
     module rounded_cylinder(xyz, diameter, padding = 0)
@@ -173,7 +161,7 @@ difference()
     PALM_TL = FRAME_BL;
     PALM_TR = FRAME_BR;
     PALM_BL = [ PALM_TL[0], PALM_TL[1] - palm_rest_length ];
-    PALM_BR = [ PALM_TR[0] - (PALM_TR[0] * tan(lateral_tilt)), PALM_TR[1] - palm_rest_length ];
+    PALM_BR = [ PALM_TR[0], PALM_TR[1] - palm_rest_length ];
 
     module palm_rest()
     {
@@ -190,8 +178,10 @@ difference()
 
         module rounded_tip()
         {
-            PALM_OFFSET = (PALM_TR[0] - PALM_TL[0]) / 2 - PALM_TL[0] + tan(lateral_tilt) * lateral_tilt;
-            PALM_DIAMETER = PALM_BR[0] - PALM_BL[0];
+            // this .1 should probably be a trig function calculation, but teh math provess is a lackin
+            // the goal is to get a straight line on the left side
+            PALM_OFFSET = (PALM_TR[0] - PALM_TL[0]) / 2 - PALM_TL[0] + .1;
+            PALM_DIAMETER = (PALM_BR[0] - PALM_BL[0]) / 1.5;
 
             hull()
             {
@@ -222,6 +212,7 @@ difference()
                         rounded_cylinder([ MAG_BR[0], MAG_BR[1], -1 ], MAGNET_DIAMETER, PADDING);
                     rounded_tip();
                 }
+                // cutting off overlap going into the frame rectangle
                 extrude_projection() hull() tilt() rounded_cylinder(
                     [ PEG_BR[0] - CORNER_DIAMETER / 2 - PADDING / 2 + 2, MAG_BR[1], -1 ], MAGNET_DIAMETER, PADDING);
             }
