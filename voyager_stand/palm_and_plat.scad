@@ -2,8 +2,8 @@ lateral_tilt = 15;
 forward_tilt = 0;
 palm_rest_length = 95;
 
-// if ($preview)
-//     keyboard_plate();
+if ($preview)
+    keyboard_plate();
 
 difference()
 {
@@ -98,7 +98,7 @@ difference()
                 {
                     translate([ xy[0], xy[1] + DEPTH / 2, -1 ]) rotate([ 90, 0, 0 ])
                         cylinder(d = CABLE_DIAMETER, h = DEPTH);
-                    translate([ xy[0], xy[1] + DEPTH / 2, CABLE_DIAMETER / 2 - 1 ]) rotate([ 90, 0, 0 ])
+                    translate([ xy[0], xy[1] + DEPTH / 2, CABLE_DIAMETER / 2 - .8 ]) rotate([ 90, 0, 0 ])
                         cylinder(d = CABLE_DIAMETER, h = DEPTH);
                 }
                 translate([ xy[0] - CABLE_DIAMETER / 2, xy[1], .05 ]) minkowski()
