@@ -5,10 +5,10 @@
     BOLT_DIAMETER = 4;
     BOLT_TAPPING_LENGTH = 8;
 
-    HEX_NUT_DIAMETER1 = 13.9;              // or 12 if measured on the flat sides
-    HEX_NUT_DIAMETER2 = BOLT_DIAMETER + 1; // or 12 if measured on the flat sides
-    HEX_NUT_HEIGHT1 = 3;
-    HEX_NUT_HEIGHT2 = 6;
+    // HEX_NUT_DIAMETER = 13.8; // or 12 if measured on the flat sides
+    // HEX_NUT_HEIGHT = 6;
+    LOCK_PIN_DIAMETER = 1.5;
+    LOCK_PIN_HOUSING_DISTANCE = 7;
 
     AXLE_HOUSE_HEIGHT1 = 3;
     AXLE_HOUSE_HEIGHT2 = 6;
@@ -38,11 +38,14 @@
                 translate([ 0, 0, AXLE_HOUSE_HEIGHT1 ])
                     cylinder(h = AXLE_HOUSE_HEIGHT2, d = AXLE_HOUSE_OUTER_DIAMETER2);
             }
-            translate([ -AXLE_HOUSE_OUTER_DIAMETER1 / 2, -AXLE_HOUSE_GROOVE_WIDTH / 2, 0 ])
-                cube([ AXLE_HOUSE_OUTER_DIAMETER1, AXLE_HOUSE_GROOVE_WIDTH, AXLE_HOUSE_GROOVE_DEPTH ]);
-            translate([ 0, 0, 0 ]) cylinder(h = AXLE_HOUSE_INNER_HEIGHT, d = AXLE_HOUSE_INNER_DIAMETER);
-            translate([ 0, 0, AXLE_HOUSE_INNER_HEIGHT - (AXLE_HOUSE_BALL_DIAMETER / 4) ])
-                sphere(AXLE_HOUSE_BALL_DIAMETER / 2, $fn = 90);
+            color("red")
+            {
+                translate([ -AXLE_HOUSE_OUTER_DIAMETER1 / 2, -AXLE_HOUSE_GROOVE_WIDTH / 2, 0 ])
+                    cube([ AXLE_HOUSE_OUTER_DIAMETER1, AXLE_HOUSE_GROOVE_WIDTH, AXLE_HOUSE_GROOVE_DEPTH ]);
+                translate([ 0, 0, 0 ]) cylinder(h = AXLE_HOUSE_INNER_HEIGHT, d = AXLE_HOUSE_INNER_DIAMETER);
+                translate([ 0, 0, AXLE_HOUSE_INNER_HEIGHT - (AXLE_HOUSE_BALL_DIAMETER / 4) ])
+                    sphere(AXLE_HOUSE_BALL_DIAMETER / 2, $fn = 90);
+            }
         }
     }
 
@@ -50,25 +53,25 @@
     {
         z_offset = AXLE_HOUSE_HEIGHT1 + AXLE_HOUSE_HEIGHT2;
         house_nut_distance = 5;
-        nut_groove_depth = .5;
+        thread_lead = .4;
         difference()
         {
             union()
             {
                 translate([ 0, 0, z_offset ]) cylinder(h = BOLT_LENGTH - BOLT_TAPPING_LENGTH, d = BOLT_DIAMETER);
                 translate([ 0, 0, z_offset + BOLT_LENGTH - BOLT_TAPPING_LENGTH ])
-                    cylinder(h = BOLT_TAPPING_LENGTH, d = BOLT_DIAMETER - nut_groove_depth * 2);
+                    cylinder(h = BOLT_TAPPING_LENGTH, d = BOLT_DIAMETER - 1);
                 translate([ 0, 0, z_offset + BOLT_LENGTH - BOLT_TAPPING_LENGTH ])
-                    thread(BOLT_DIAMETER / 2, BOLT_TAPPING_LENGTH, nut_groove_depth * 2);
-                hull()
-                {
-                    translate([ 0, 0, z_offset + house_nut_distance ])
-                        cylinder(h = HEX_NUT_HEIGHT2, d = HEX_NUT_DIAMETER2, $fn = 6);
-                    translate([ 0, 0, z_offset + house_nut_distance + HEX_NUT_HEIGHT1 ])
-                        cylinder(h = HEX_NUT_HEIGHT1, d = HEX_NUT_DIAMETER1, $fn = 6);
-                }
+                    thread(BOLT_DIAMETER / 2, BOLT_TAPPING_LENGTH, thread_lead * 2);
+                // translate([ 0, 0, z_offset + house_nut_distance ])
+                //     cylinder(h = HEX_NUT_HEIGHT, d = HEX_NUT_DIAMETER, $fn = 6);
             }
-            color("red") translate([ 0, 0, TOTAL_HEIGHT - 1 ]) taper(BOLT_DIAMETER, BOLT_DIAMETER + 2, 1.5, 3);
+            color("red")
+            {
+                translate([ 0, 0, TOTAL_HEIGHT - 1 ]) taper(BOLT_DIAMETER, BOLT_DIAMETER + 2, 1.5, 3);
+                translate([ 0, 0, z_offset + LOCK_PIN_HOUSING_DISTANCE ]) rotate([ 0, 90, 0 ])
+                    cylinder(h = BOLT_DIAMETER * 2, d = LOCK_PIN_DIAMETER, center = true);
+            }
         }
         module taper(di, do, hi, ho)
         {
