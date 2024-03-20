@@ -12,37 +12,45 @@ difference()
         pegs();
         frame();
         palm_rest();
+        voyager_badge_clipons();
     }
     cable_cutouts();
-    magnet_cutouts();
+    foot_cutouts();
+    magnet_cutout();
 }
 
 {
     CORNER_DIAMETER = 6;
-    MAGNET_DIAMETER = 16.3;
-    MAGNET_DEPTH = 12.5;
     PADDING = 3.5;
 
     CABLE_DIAMETER = 4.3;
 
     PEG_TL = [ 10.4, 94 ];
     PEG_BL = [ 10.4, 59 ];
+    // TR and BR are unused since we use the feet to hold the keyboard in place on this side
+    // They however used for other positions (e.g for the frame)
     PEG_TR = [ 105.4, 94 ];
     PEG_BR = [ 105.4, 29 ];
     PEG_DIAMETER = 1.70;
     PEG_HEIGHT = 1.3;
 
-    MAG_TR = [ 105.4, 114.4 ];
-    MAG_BR = [ 119.25, 13.65 ];
+    FOOT_TR = [ 105.4, 114.4 ];
+    FOOT_BR = [ 119.25, 13.65 ];
+    FOOT_DIAMETER = 16.3;
+    FOOT_DEPTH = 12.5;
 
-    FRAME_OFFSET = (MAGNET_DIAMETER - CORNER_DIAMETER) / 2;
-    FRAME_TL = [ PEG_TL[0], MAG_TR[1] + FRAME_OFFSET ];
-    FRAME_TR = [ MAG_TR[0] + FRAME_OFFSET, MAG_TR[1] + FRAME_OFFSET ];
-    FRAME_BR = [ PEG_BR[0] + FRAME_OFFSET, MAG_BR[1] - FRAME_OFFSET ];
-    FRAME_BL = [ PEG_BL[0], MAG_BR[1] - FRAME_OFFSET ];
+    FRAME_OFFSET = (FOOT_DIAMETER - CORNER_DIAMETER) / 2;
+    FRAME_TL = [ PEG_TL[0], FOOT_TR[1] + FRAME_OFFSET ];
+    FRAME_TR = [ FOOT_TR[0] + FRAME_OFFSET, FOOT_TR[1] + FRAME_OFFSET ];
+    FRAME_BR = [ PEG_BR[0] + FRAME_OFFSET, FOOT_BR[1] - FRAME_OFFSET ];
+    FRAME_BL = [ PEG_BL[0], FOOT_BR[1] - FRAME_OFFSET ];
 
-    CABLE_TL = [ (PEG_TR[0] - PEG_TL[0]) / 2 + PEG_TL[0], MAG_TR[1] ];
-    CABLE_TR = [ MAG_TR[0] - MAGNET_DIAMETER - PADDING, MAG_TR[1] ];
+    MAGNET_POS = [ FRAME_TR[0], (FRAME_TR[1] - FRAME_BR[1])/2 + FRAME_BR[1]];
+    MAGNET_DIAMETER = 10;
+    MAGNET_HEIGHT = 4;
+
+    CABLE_TL = [ (PEG_TR[0] - PEG_TL[0]) / 2 + PEG_TL[0], FOOT_TR[1] ];
+    CABLE_TR = [ FOOT_TR[0] - FOOT_DIAMETER - PADDING, FOOT_TR[1] ];
 
     $fn = 90;
 
@@ -77,19 +85,44 @@ difference()
         }
     }
 
-    module magnet_cutouts()
+    module foot_cutouts()
     {
         color("red") tilt()
         {
-            translate([ MAG_TR[0], MAG_TR[1], -MAGNET_DEPTH + .1 ]) cylinder(d = MAGNET_DIAMETER, h = MAGNET_DEPTH);
-            translate([ MAG_BR[0], MAG_BR[1], -MAGNET_DEPTH + .1 ]) cylinder(d = MAGNET_DIAMETER, h = MAGNET_DEPTH);
+            translate([ FOOT_TR[0], FOOT_TR[1], -FOOT_DEPTH + .1 ]) cylinder(d = FOOT_DIAMETER, h = FOOT_DEPTH);
+            translate([ FOOT_BR[0], FOOT_BR[1], -FOOT_DEPTH + .1 ]) cylinder(d = FOOT_DIAMETER, h = FOOT_DEPTH);
+        }
+    }
+
+    module magnet_cutout()
+    {
+        color("blue") tilt()
+        {
+            translate([ MAGNET_POS[0], MAGNET_POS[1], -MAGNET_HEIGHT + .1]) cylinder(d = MAGNET_DIAMETER, h = MAGNET_HEIGHT);
+        }
+    }
+    
+    module voyager_badge_clipons()
+    {
+        // todo: get correct measurements on the badge
+        outer_frame_x = FRAME_TR[0] + CORNER_DIAMETER + PADDING;
+        outer_frame_y = FRAME_TR[1] - CORNER_DIAMETER - PADDING; // should be before the curve of the frame
+
+        color("yellow") tilt()
+        {
+
+            extrude_projection() hull() tilt()
+            {
+                translate([outer_frame_x, outer_frame_y, -5]) square([10, 10]);
+            }
+
         }
     }
 
     module cable_cutouts()
     {
         $fn = 18;
-        DEPTH = MAGNET_DIAMETER * 2;
+        DEPTH = FOOT_DIAMETER * 2;
         module cable(xy)
         {
             difference()
@@ -151,9 +184,9 @@ difference()
                 rounded_cylinder([ FRAME_BL[0], FRAME_BL[1], -1 ], CORNER_DIAMETER, PADDING);
                 rounded_cylinder([ FRAME_TL[0], FRAME_TL[1], -1 ], CORNER_DIAMETER, PADDING);
             }
-            extrude_projection() hull() tilt() rounded_cylinder([ MAG_TR[0], MAG_TR[1], -1 ], MAGNET_DIAMETER, PADDING);
+            extrude_projection() hull() tilt() rounded_cylinder([ FOOT_TR[0], FOOT_TR[1], -1 ], FOOT_DIAMETER, PADDING);
             // this one is repeated in the palm rest module
-            // extrude_projection() hull() tilt() rounded_cylinder([ MAG_BR[0], MAG_BR[1], -1 ], MAGNET_DIAMETER,
+            // extrude_projection() hull() tilt() rounded_cylinder([ FOOT_BR[0], FOOT_BR[1], -1 ], FOOT_DIAMETER,
             // PADDING);
         }
     }
@@ -209,12 +242,12 @@ difference()
                 hull()
                 {
                     extrude_projection() hull() tilt()
-                        rounded_cylinder([ MAG_BR[0], MAG_BR[1], -1 ], MAGNET_DIAMETER, PADDING);
+                        rounded_cylinder([ FOOT_BR[0], FOOT_BR[1], -1 ], FOOT_DIAMETER, PADDING);
                     rounded_tip();
                 }
                 // cutting off overlap going into the frame rectangle
                 extrude_projection() hull() tilt() rounded_cylinder(
-                    [ PEG_BR[0] - CORNER_DIAMETER / 2 - PADDING / 2 + 2, MAG_BR[1], -1 ], MAGNET_DIAMETER, PADDING);
+                    [ PEG_BR[0] - CORNER_DIAMETER / 2 - PADDING / 2 + 2, FOOT_BR[1], -1 ], FOOT_DIAMETER, PADDING);
             }
         }
     }
