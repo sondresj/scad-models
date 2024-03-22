@@ -51,10 +51,6 @@ difference()
     CABLE_TL = [ (PEG_TR[0] - PEG_TL[0]) / 2 + PEG_TL[0], FOOT_TR[1] ];
     CABLE_TR = [ FOOT_TR[0] - FOOT_DIAMETER - PADDING, FOOT_TR[1] ];
 
-    function calculate_midpoint(va, vb) = [
-        (vb[0] + va[0]) / 2 - va[0] - (CORNER_DIAMETER + PADDING),
-        (vb[1] + va[1]) / 2 - va[1] - CORNER_DIAMETER - PADDING, (vb[2] - va[2]) / 2 + va[2]
-    ];
     function calculate_tilted_position(xyz) = [
         // thanks copilot
         xyz[0] * cos(lateral_tilt) - (xyz[2] + DOCK_HEIGHT) * sin(lateral_tilt), xyz[1],
