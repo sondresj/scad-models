@@ -1,6 +1,8 @@
-trygve();
+
+// trygve();
 // mario();
 // sanna();
+lilli_otonie();
 
 {
     $fn = 45;
@@ -13,6 +15,8 @@ trygve();
     screw_head_diameter = 9;
     screw_diameter = 4;
 
+    _ = [[0, 0, 0], [width, 0, 0]];
+    sp = [];
     A = [
         [ 0, 0, 0 ],
         [ width / 6, height / 3, 0 ],
@@ -40,6 +44,12 @@ trygve();
     I = [
         [ width / 2, height, 0 ],
         [ width / 2, 0, 0 ],
+    ];
+    L = [
+        [ 0, height, 0 ],
+        [ 0, 0, 0 ],
+        [ width, 0, 0 ],
+        [ width, hanger_length, hanger_z ],
     ];
     M = [
         [ 0, hanger_length, hanger_z ],
@@ -118,12 +128,15 @@ trygve();
 
     function get_x_offset(idx) = idx * (width + spacing);
 
-    module render_name(letters)
+    module render_name(letters, y = 0)
     {
         for (i = [0:len(letters) - 1])
         {
             l = letters[i];
             xo = get_x_offset(i); // x offset
+            
+            if (len(l) > 1)
+            {
             for (p_i = [1:len(l) - 1])
             {
                 pp = l[p_i - 1]; // previous point
@@ -136,40 +149,41 @@ trygve();
                     hull()
                     {
 
-                        translate([ xo + pp.x, pp.y, max(pp.z, corner_radius) ]) sphere(r = pp_r);
-                        translate([ xo + pc.x, pc.y, max(pc.z, corner_radius) ]) sphere(r = pc_r);
+                        translate([ xo + pp.x, y + pp.y, max(pp.z, corner_radius) ]) sphere(r = pp_r);
+                        translate([ xo + pc.x, y + pc.y, max(pc.z, corner_radius) ]) sphere(r = pc_r);
                     }
                 }
                 else
                 {
                     hull()
                     {
-                        translate([ xo + pp.x, pp.y, pp.z ]) cylinder(r = corner_radius, h = 1);
-                        translate([ xo + pp.x, pp.y, corner_radius ]) sphere(r = corner_radius);
-                        translate([ xo + pc.x, pc.y, pc.z ]) cylinder(r = corner_radius, h = 1);
-                        translate([ xo + pc.x, pc.y, corner_radius ]) sphere(r = corner_radius);
+                        translate([ xo + pp.x,y +  pp.y, pp.z ]) cylinder(r = corner_radius, h = 1);
+                        translate([ xo + pp.x, y + pp.y, corner_radius ]) sphere(r = corner_radius);
+                        translate([ xo + pc.x, y + pc.y, pc.z ]) cylinder(r = corner_radius, h = 1);
+                        translate([ xo + pc.x, y + pc.y, corner_radius ]) sphere(r = corner_radius);
                     }
                 }
+            }
             }
         }
     }
 
-    module backplate(x_start_offset, length)
+    module backplate(xy, length)
     {
         union()
         {
             // hull()
             //{
-            //     translate([ x_start_offset, 0, 0 ])
+            //     translate([ xy.x, 0, 0 ])
             //         cylinder(h = corner_radius / 2, r1 = corner_radius, r2 = corner_radius - corner_radius / 4);
             //     translate([ length - width / 2, 0, 0 ])
             //         cylinder(h = corner_radius / 2, r1 = corner_radius, r2 = corner_radius - corner_radius / 4);
             // }
             hull()
             {
-                translate([ x_start_offset, height, 0 ])
+                translate([ xy.x, xy.y, 0 ])
                     cylinder(h = corner_radius / 2, r1 = corner_radius, r2 = corner_radius - corner_radius / 4);
-                translate([ length - width / 2, height, 0 ])
+                translate([ length - width / 2, xy.y, 0 ])
                     cylinder(h = corner_radius / 2, r1 = corner_radius, r2 = corner_radius - corner_radius / 4);
             }
         }
@@ -195,7 +209,7 @@ trygve();
             union()
             {
                 render_name(letters);
-                backplate(width / 2, length);
+                backplate([width / 2, height], length);
             }
             screw_cutouts([
                 [ width / 2, height, corner_radius * 2.1 ],
@@ -215,7 +229,7 @@ trygve();
             union()
             {
                 render_name(letters);
-                backplate(0, length);
+                backplate([0, height], length);
             }
             screw_cutouts([
                 [ 0, height, corner_radius * 2.1 ],
@@ -235,12 +249,41 @@ trygve();
             union()
             {
                 render_name(letters);
-                backplate(width / 2, length);
+                backplate([width / 2, height], length);
             }
             screw_cutouts([
                 [ width / 2, height, corner_radius * 2.1 ],
                 [ length / 2, height, corner_radius - .1 ],
                 [ length - width / 2, height, corner_radius * 2.1 ],
+            ]);
+        }
+    }
+
+    module lilli_otonie()
+    {
+
+        lilli = [ L, I, L, L, I,];
+        otonie = [ O, T, O, N, I, E ];
+        length1 = get_x_offset(len(lilli));
+        length2 = get_x_offset(len(otonie));
+
+
+        difference()
+        {
+            union()
+            {
+                render_name(lilli);
+                render_name(otonie, -height - corner_radius*3);
+                backplate([0, height], length1);
+                backplate([width/2, -corner_radius*3], length2);
+            }
+            screw_cutouts([
+                [ 0, height, corner_radius * 2.1 ],
+                [ length1 / 2, height, corner_radius - .1 ],
+                [ length1 - width / 2, height, corner_radius * 2.1 ],
+                [ width/2, -corner_radius*3, corner_radius * 2.1 ],
+                [ length2 - width / 2, -corner_radius*3, corner_radius * 2.1 ],
+                [ length2 / 2, -corner_radius*3, corner_radius * 2 ],
             ]);
         }
     }
