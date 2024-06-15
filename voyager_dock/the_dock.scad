@@ -1,5 +1,5 @@
-lateral_tilt = 15;
-palm_rest_length = 105;
+lateral_tilt = 25;
+palm_rest_length = 130;
 magnet_diameter = 10;
 
 if ($preview)
@@ -22,7 +22,7 @@ difference()
 {
     CORNER_DIAMETER = 6;
     DOCK_HEIGHT = 3;
-    PADDING = 3.5;
+    PADDING = 5;
 
     CABLE_DIAMETER = 4.3;
 
@@ -202,7 +202,7 @@ difference()
 
         palm_tl = FRAME_BL;
         palm_tr = FRAME_BR;
-        palm_b = [ palm_tl[0], FOOT_BR[1] - palm_rest_length, DOCK_HEIGHT ];
+        palm_b = [ palm_tl[0], FOOT_BR[1] - palm_rest_length, DOCK_HEIGHT * 1.8 ];
 
         module rounded_tip()
         {
