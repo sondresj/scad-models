@@ -1,7 +1,10 @@
 include <BOSL2/std.scad>
+
+$fn=45;
+
 pin_dist_y = 187;
-pin_dist_x = 36;
-pin_radius = 6;
+pin_dist_x = 25;
+pin_radius = 6/2;
 
 body_thickness = 2;
 body_w = 110;
@@ -45,7 +48,7 @@ module body_hull() {
       x = body_w / 4;
       y = pin_dist_y / 3;
       z = body_h / 2 - 1;
-      h = body_thickness + 1;
+      h = body_thickness;
       move([x,y,z]) zrot(90) accessory_cutout(h = h);
       move([-x,y,z]) zrot(90) accessory_cutout(h = h);
       move([x,-y,z]) zrot(90) accessory_cutout(h = h); 
@@ -68,7 +71,7 @@ module front(){
   attach(FRONT) {
     ymove(18) text3d("TKJ", orient=UP, center=true);
     ymove(18) rect_tube(h=1, wall=1, size=[30,14], rounding=2);
-    #tag("remove") ymove(-18) cuboid([body_w, body_h, 20]);
+    tag("remove") ymove(-18) cuboid([body_w, body_h, 20]);
   }
 }
 // enumber plate?
