@@ -7,22 +7,38 @@ $fn = 90;
 // bar_or = 24/2;
 
 cut_r = 4; // (d=14 -3mm depth of cut = 14/2 - 3 = 4)
-ir = 3.1;
+ir = 3.3;
 r1 = 14/2;
-r2 = 24/2;
-r3 = 30/2;
+r2 = 20/2;
 h1 = 2;
-h2 = 4; // should be able  to squeeze inside of excess grip length. this prolly only works on left side
-h3 = 4;
+h2 = 2;
+h3 = 8;
+wrench_r = 17/2-$slop*2;
 
-// #chamfer_everything
-diff() cyl(h2, r2, chamfer2=0.2, chamfer1=-0.2) {
-  attach(TOP, BOTTOM) {
-    cyl(h1, r1, chamfer2=0.2, chamfer1=-0.2);
-    tag("remove") xmove(r1 + cut_r) cuboid(size=[r1*2, r1*2, h1]);
+diff() cyl(h2, r2, chamfer2=0.5) {
+  // center hole
+  tag("remove")
+  attach(TOP, TOP, overlap=h2+h3)
+  cyl(h1+h2+h3+$slop,ir, chamfer1=-0.5);
+
+  // inner bush
+  attach(TOP, BOT) {
+    cyl(h1, r1, chamfer2=0.5, chamfer1=-0.5);
+    tag("remove") up(0.001) xmove(r1 + cut_r) cuboid(size=[r1*2, r1*2, h1]);
   }
-  attach(BOTTOM, TOP) cyl(h3, r3, chamfer=0.2) {
-    tag("remove") attach(TOP, TOP, overlap=h3) cyl(h1+h2+h3,ir);
+
+  // outer spacer + wrench slot
+  attach(BOT, TOP) {
+    cyl(h=h3, r=r2);
+
+    #tag("remove")
+    down(1)
+    xcopies(wrench_r*2+r2*2, n=2)
+    cuboid(
+      size=[r2*2,r2*2, h3+2],
+      chamfer=2,
+      edges=[TOP+LEFT, TOP+RIGHT]
+    );
   }
 }
 

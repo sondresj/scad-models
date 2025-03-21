@@ -4,8 +4,8 @@ include <BOSL2/screws.scad>
 
 $slop = 0.075;
 $fn = 90;
-diff() cyl(3, 7, chamfer=0.5) {
-  attach(BOT, TOP, overlap=3) screw("M10x1.25", head="none", length=14, thread_len=11);
-  attach(TOP, TOP, inside=true) #tag("remove") hex_drive_mask(size=5, length=5);
-}
+
+screw("M10x1.25",  length=14, thread_len=12, head="none", drive="hex", drive_size=5, bevel1=1) {
+  attach(TOP, TOP, overlap=2) tube(h=2, ir=3, or1=6, or2=7, rounding=0.5);
+};
 
