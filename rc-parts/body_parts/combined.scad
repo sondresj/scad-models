@@ -38,19 +38,28 @@ cs = 30;
 frame_len = cubetruss_dist(4,0,cs); // 108;
 
 frame() {
-   attach([LEFT, RIGHT], BACK, shiftout=8) side_frame();
+   back(cubetruss_dist(1,0,cs))
+   attach([LEFT, RIGHT], BACK, shiftout=0)
+   side_frame();
 
-   attach([FRONT, BACK], BACK, overlap=4) subframe_anchor();
+   attach([FRONT, BACK], BACK, overlap=4)
+   subframe_anchor();
 
-   attach(TOP, BACK, shiftout=8) 
-   fwd(cubetruss_dist(2,0,cs))
+   attach(TOP, BACK, shiftout=0) 
+   fwd(cubetruss_dist(2,0,cs)-4)
    hood();
 
-   attach(TOP, BOT, shiftout=8)
+   attach(TOP, BOT, shiftout=0)
    back(cubetruss_dist(2,0,cs))
-   roll_cage();
+   !roll_cage();
 
-   attach(TOP, BOT, shiftout=8) spoiler();
+   down(wheel_r/2+5)
+   back(cubetruss_dist(4,0,cs)-cs/2)
+   mirror_copy([-1,0,0], offset=cs+30)
+   zrot(-90)
+   side_panel();
+
+   // attach(TOP, BOT, shiftout=8) spoiler();
 }
 if ($preview) {
   color("grey", .5) down(47) rc_car();
@@ -97,35 +106,48 @@ module side_frame() {
 
 module hood() {
   l=cubetruss_dist(4,0,cs) + 2*$cubetruss_strut_size;
+  snap_l=cs;
   w=cs;
-  diff() panel(l, w+20, w+10, 10) {
+  diff() panel(l, w*2, w*4/3, 10) {
+
+    attach(BOT, BOT, overlap=2)
+    xrot(-90)
+    prismoid([w,4], [w*2/3,1.6], h=10, chamfer=.8)
+    attach(FRONT)
+    text3d("TKJ", spin=180, center=true, size=8);
 
     attach(LEFT, RIGHT, shiftout=12)
     yrot(-30)
-    panel(l/2, w*2/3, w*2/5, 4)
+    panel(l*2/3, w*2/3, w*2/5, 6)
     attach(RIGHT, BOT, spin=90, overlap=2)
-    down(7)
+    down(8)
+    xcopies(snap_l)
     xrot(90)
-    snap_lock(thick=1,foldangle=60);
+    down(1)
+    snap_lock(thick=2,foldangle=60);
 
     attach(RIGHT, LEFT, shiftout=12)
     yrot(30)
-    panel(l/2, w*2/3, w*2/5, 4)
+    panel(l*2/3, w*2/3, w*2/5, 6)
     attach(LEFT, BOT, spin=-90, overlap=2)
-    down(7)
+    down(8)
+    xcopies(snap_l)
     xrot(90)
-    snap_lock(thick=1,foldangle=60);
+    down(1)
+    snap_lock(thick=2,foldangle=60);
 
     attach(LEFT, BOT, spin=90, overlap=10)
     xrot(-90)
     down(1)
     right(10)
+    xcopies(snap_l)
     snap_socket(thick=2, foldangle=60);
 
     attach(RIGHT, BOT, spin=-90, overlap=10)
     xrot(-90)
     down(1)
     left(10)
+    xcopies(snap_l)
     snap_socket(thick=2, foldangle=60);
 
     attach(BACK, FRONT, spin=90, overlap=0.1)
@@ -136,10 +158,10 @@ module hood() {
 }
 
 module panel(l, w1, w2, c, anchor=CENTER, spin=0, orient=UP) {
-  t = 2;
+  t = 1.5;
   prismoid(
     [w2, t],
-    [w1, t+l*tan(2)],
+    [w1, t+l*tan(t)],
     h=l,
     anchor=anchor,
     spin=spin,
@@ -169,10 +191,28 @@ module panel(l, w1, w2, c, anchor=CENTER, spin=0, orient=UP) {
 }
 
 module roll_cage() {
+  t=1.6;
+  cubetruss([1,1,1], bracing=false, size=cs){
+    attach(BACK, BACK, align=BOT)
+    cubetruss_support(cs);
+
+    attach(FRONT, BACK, align=TOP, spin=180)
+    cubetruss_support(cs);
+
+    back(cs)
+    attach(TOP, FRONT, align=BACK, overlap=t)
+    prismoid([cs,t], [cs*3, t], cubetruss_dist(2,0,cs)) ;
+    attach(TOP, FRONT, align=BACK, overlap=t)
+    prismoid([cs*2/3,t], [cs*4/3, t], cubetruss_dist(2,0,cs));
+  }
+}
+
+module roll_cage_old() {
   l = cubetruss_dist(2,0,cs) + $cubetruss_strut_size;
 
+  union()
   intersect("mask", "frame")
-  cubetruss([1,2,1], bracing=false, size=cs){
+  cubetruss([1,2,1], bracing=false, size=cs) {
 
     attach(BOT, BOT, inside=true)
     tag("mask")
@@ -230,10 +270,79 @@ module roll_cage() {
     }
   }
 
+  zmove(cs)
   ycopies(cubetruss_dist(1,0,cs), n=2)
   cubetruss_uclip(size=cs);
-
 }
+
+module side_panel() {
+  w=cubetruss_dist(4,0,cs);
+  t=1.6;
+  h=wheel_r/cos(45);
+  d=wheel_r;
+  
+  diff() {
+    right(w/2)
+    xrot(-45)
+    prismoid(
+      [w, t],
+      [w/3, t],
+      h=h,
+      shift=[-w/3,0]
+    ) {
+      edge_profile([BOT+RIGHT], excess=1)
+      mask2d_chamfer(10);
+
+      #tag("remove")
+      up(10)
+      right(3)
+      attach(FRONT, BACK, overlap=3)
+      cubetruss_uclip(
+        dual=false,
+        size=cs,
+        clipthick=$cubetruss_clip_thickness+2*$slop);
+
+      up(10)
+      right(3)
+      attach(FRONT, BACK, shiftout=8)
+      zscale(($cubetruss_clip_thickness+t)/$cubetruss_clip_thickness)
+      cubetruss_uclip(
+        dual=false,
+        size=cs,
+        clipthick=$cubetruss_clip_thickness);
+
+      tag("remove")
+      attach(BACK, TOP)
+      cuboid([d*4,d*4,d*4]);
+    }
+
+    back(d)
+    xrot(90)
+    right_half()
+    back_half()
+    cyl($fn=12, r=wheel_r, h=d*2)
+    tag("remove")
+    cyl($fn=12, r=wheel_r-t, h=d*2.1);
+  }
+}
+
+  // btw=d + h*cos(45);
+  // fwd(d/2-t/2)
+  // diff()
+  // prismoid(
+  //   [d, t],
+  //   [tw, t],
+  //   h=h*sin(45),
+  //   shift=[tw/2-d/2,0],
+  //   chamfer=t/2,
+  //   spin=90
+  // ){
+  //   edge_profile([TOP+LEFT], excess=1)
+  //   mask2d_chamfer(10);
+  //   edge_profile(excess=1)
+  //   mask2d_chamfer(t/2);
+  // }
+
 
 module spoiler() {
 }
